@@ -1,0 +1,1 @@
+Playbook to setup complete rails stack on AWS ElasticBeanstalk.  One prod and one staging multi-az, autoscaling, RDS-backed EB environment each in their own VPCs.  

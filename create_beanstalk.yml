@@ -1,0 +1,6 @@
+- hosts: localhost
+  connection: local
+  roles:
+    - cf_networking
+    - rails
+    - circle
