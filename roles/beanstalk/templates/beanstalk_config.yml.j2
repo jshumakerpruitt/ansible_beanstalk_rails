@@ -4,8 +4,8 @@ branch-defaults:
     group_suffix: null
 global:
   application_name: beanstalk_rails
-  default_ec2_keyname: "{{KeyName}}"
+  default_ec2_keyname: {{key_name}}
   default_platform: Ruby 2.3 (Puma)
-  default_region: us-east-1
+  default_region: {{aws_region}}
   profile: null
   sc: git

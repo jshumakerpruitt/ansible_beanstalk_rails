@@ -1,0 +1,8 @@
+option_settings:
+  aws:autoscaling:launchconfiguration:
+    InstanceType: "{{instance_type}}"
+    SecurityGroups: "{{security_group_id}}"
+  aws:ec2:vpc:
+    VPCId: "{{vpc_id}}"
+    Subnets: "{{private_subnet1}},{{private_subnet2}}"
+    ELBSubnets: "{{public_subnet1}},{{public_subnet2}}"

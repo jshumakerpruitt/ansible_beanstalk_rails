@@ -1,0 +1,10 @@
+---
+- name: create option_settings
+  template:
+    src="./roles/beanstalk/templates/option_settings.config.j2"
+    dest="./output/option_settings.yml"
+
+- name: create beanstalk config.yml
+  template:
+    src="./roles/beanstalk/templates/beanstalk_config.yml.j2"
+    dest="./output/config.yml"
