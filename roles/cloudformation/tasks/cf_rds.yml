@@ -1,0 +1,28 @@
+---
+- name: create rds resources with cloudformation
+  cloudformation: >
+    stack_name="rdsstack"
+    state=present
+    region="{{aws_region}}"
+    disable_rollback=true
+    template="roles/cloudformation/templates/cf_rds.json"
+  args:
+    template_parameters:
+      AppServerSecurityGroupId: "{{security_group_id}}"
+      DBAllocatedStorage: "{{db_allocated_storage}}"
+      DBClass: "{{db_class}}"
+      Engine: "{{db_engine}}"
+      EngineVersion: "{{db_engine_version}}"
+      Subnets: "{{private_subnet1}},{{private_subnet2}}"
+      VPCId: "{{vpc_id}}"
+      DBUsername: "{{db_username}}"
+      DBPassword: "{{db_password}}"
+      DBName: "{{db_name}}"
+  register: stack
+
+- name: show stack outputs  
+  debug: msg="{{stack.stack_outputs}}"
+
+- name: set facts
+  set_fact:
+    db_ipaddress: "foo"

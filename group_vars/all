@@ -1,3 +1,8 @@
+---
 aws_region: us-east-1
 key_name: us-east
 instance_type: t2.micro
+db_class: db.t2.micro
+db_allocated_storage: 5
+db_engine: postgres
+db_engine_version: 9.5.2

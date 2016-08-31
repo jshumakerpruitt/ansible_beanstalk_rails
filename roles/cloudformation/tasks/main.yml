@@ -23,3 +23,5 @@
     public_subnet2: "{{stack.stack_outputs['PublicSubnet1c']}}"
     security_group_id: "{{stack.stack_outputs['SecurityGroup']}}"
     vpc_id: "{{stack.stack_outputs['VPC']}}"
+
+- include: "roles/cloudformation/tasks/cf_rds.yml"

@@ -1,6 +1,16 @@
 - hosts: localhost
   connection: local
   gather_facts: false
+  vars_prompt:
+    - name: db_username
+      prompt: enter desired db username
+      private: no
+    - name: db_password
+      prompt: enter db password (>8 chars)
+      private: no
+    - name: db_name
+      prompt: enter db name
+      private: no
   roles:
     - cloudformation
     - beanstalk
