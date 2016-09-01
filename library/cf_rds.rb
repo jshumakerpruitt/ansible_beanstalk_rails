@@ -131,11 +131,6 @@ CloudFormation do
                          FromPort: "5432",
                          ToPort: "5432",
                          SourceSecurityGroupId: Ref("AppServerSecurityGroupId")
-
-    SecurityGroupEgress IpProtocol: "tcp",
-                        FromPort: "5432",
-                        ToPort: "5432",
-                        CidrIp: "0.0.0.0/0"
   end
 
   Resource("MyDB") do

@@ -5,7 +5,7 @@
     state=present
     region="{{aws_region}}"
     disable_rollback=true
-    template="roles/cloudformation/files/arch.json"
+    template="roles/cloudformation/templates/arch.json"
   args:
     template_parameters:
       KeyName: "{{key_name}}"

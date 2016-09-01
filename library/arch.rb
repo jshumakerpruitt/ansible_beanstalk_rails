@@ -49,15 +49,22 @@ CloudFormation {
   EC2_SecurityGroup "SecurityGroup" do
     VpcId Ref("VPC")
     GroupDescription "do not allow traffic in or out of vpc outside"
-    SecurityGroupIngress IpProtocol: "-1",
-                         FromPort: "-1",
-                         ToPort: "-1",
-                         CidrIp: "10.0.0.0/16"
-
-    SecurityGroupEgress IpProtocol: "-1",
-                        FromPort: "-1",
-                        ToPort: "-1",
-                        CidrIp: "0.0.0.0/0"
+    SecurityGroupIngress [{
+                            IpProtocol: "tcp",
+                            FromPort: "22",
+                            ToPort: "22",
+                            CidrIp: "10.0.0.0/16"
+                          },{
+                            IpProtocol: "tcp",
+                            FromPort: "5432",
+                            ToPort: "5432",
+                            CidrIp: "10.0.0.0/16"
+                          },{
+                            IpProtocol: "tcp",
+                            FromPort: "80",
+                            ToPort: "80",
+                            CidrIp: "10.0.0.0/16"
+                          }]
   end
 
   Output 'SecurityGroup' do
