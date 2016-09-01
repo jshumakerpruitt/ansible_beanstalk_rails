@@ -1,0 +1,18 @@
+---
+- name: create cache resource with cloudformation
+  cloudformation: >
+    stack_name="cachestack"
+    state=present
+    region="{{aws_region}}"
+    disable_rollback=true
+    template="roles/cloudformation/templates/cf_cache.json"
+  args:
+    template_parameters:
+      PrivateSubnet1: "{{ private_subnet1 }}"
+      PrivateSubnet2: "{{ private_subnet2 }}"
+      ClusterNodeType: cache.t1.micro
+      AppServerSecurityGroup: "{{security_group_id}}"
+  register: stack
+
+- name: show stack outputs  
+  debug: msg="{{stack.stack_outputs}}"

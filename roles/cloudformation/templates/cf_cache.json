@@ -1,0 +1,71 @@
+{
+   "Description" : "",
+   "Resources" : {
+      "CacheSubnetGroup" : {
+         "Type" : "AWS::ElastiCache::SubnetGroup",
+         "Properties" : {
+            "SubnetIds" : [
+               {
+                  "Ref" : "PrivateSubnet1"
+               },
+               {
+                  "Ref" : "PrivateSubnet2"
+               }
+            ],
+            "Description" : "Subnets in which to launch cluster"
+         }
+      },
+      "RedisCluster" : {
+         "Type" : "AWS::ElastiCache::CacheCluster",
+         "Properties" : {
+            "CacheNodeType" : {
+               "Ref" : "ClusterNodeType"
+            },
+            "VpcSecurityGroupIds" : [
+               {
+                  "Ref" : "AppServerSecurityGroup"
+               }
+            ],
+            "NumCacheNodes" : "1",
+            "CacheSubnetGroupName" : {
+               "Ref" : "CacheSubnetGroup"
+            },
+            "Engine" : "redis"
+         }
+      }
+   },
+   "Parameters" : {
+      "AppServerSecurityGroup" : {
+         "Description" : "Id of App Server SecurityGroup",
+         "Type" : "String"
+      },
+      "ClusterNodeType" : {
+         "ConstraintDescription" : "must select a valid Cache Node type.",
+         "AllowedValues" : [
+            "cache.t1.micro",
+            "cache.m1.small",
+            "cache.m1.medium",
+            "cache.m1.large",
+            "cache.m1.xlarge",
+            "cache.m2.xlarge",
+            "cache.m2.2xlarge",
+            "cache.m2.4xlarge",
+            "cache.m3.xlarge",
+            "cache.m3.2xlarge",
+            "cache.c1.xlarge"
+         ],
+         "Default" : "cache.t1.micro",
+         "Type" : "String",
+         "Description" : ""
+      },
+      "PrivateSubnet1" : {
+         "Description" : "Privates subnet in which to launch cluster",
+         "Type" : "String"
+      },
+      "PrivateSubnet2" : {
+         "Type" : "String",
+         "Description" : "Privates subnet in which to launch cluster"
+      }
+   },
+   "AWSTemplateFormatVersion" : "2010-09-09"
+}
