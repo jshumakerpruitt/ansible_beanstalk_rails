@@ -25,4 +25,5 @@
 
 - name: set facts
   set_fact:
-    db_ipaddress: "foo"
+    db_ip_address: "{{stack.stack_outputs['DBIpAddress']}}"
+    db_port: "{{stack.stack_outputs['DBPortNumber']}}"

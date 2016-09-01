@@ -151,6 +151,11 @@ CloudFormation do
 
   Output("DBPortNumber") do
     Description("PortNumber")
+    Value(FnGetAtt("MyDB", "Endpoint.Port"))
+  end
+
+  Output("DBIpAddress") do
+    Description("DBIpAddress")
     Value(FnGetAtt("MyDB", "Endpoint.Address"))
   end
 

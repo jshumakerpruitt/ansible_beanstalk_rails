@@ -1,136 +1,101 @@
 {
-   "Description" : "AWS CloudFormation Sample Template VPC_RDS_DB_Instance: Sample template showing how to create an RDS DBInstance in an existing Virtual Private Cloud (VPC). **WARNING** This template creates an Amazon Relational Database Service database instance. You will be billed for the AWS resources used if you create a stack from this template.",
    "Outputs" : {
+      "DBUsername" : {
+         "Value" : {
+            "Ref" : "DBUsername"
+         },
+         "Description" : "DBUsername"
+      },
       "DBPassword" : {
          "Value" : {
             "Ref" : "DBPassword"
          },
          "Description" : "DBPassword"
       },
-      "DBUsername" : {
-         "Description" : "DBUsername",
+      "DBPortNumber" : {
+         "Description" : "PortNumber",
          "Value" : {
-            "Ref" : "DBUsername"
+            "Fn::GetAtt" : [
+               "MyDB",
+               "Endpoint.Port"
+            ]
          }
       },
-      "DBPortNumber" : {
+      "DBIpAddress" : {
          "Value" : {
             "Fn::GetAtt" : [
                "MyDB",
                "Endpoint.Address"
             ]
          },
-         "Description" : "PortNumber"
+         "Description" : "DBIpAddress"
       }
    },
    "AWSTemplateFormatVersion" : "2010-09-09",
-   "Resources" : {
-      "DBSecurityGroup" : {
-         "Type" : "AWS::EC2::SecurityGroup",
-         "Properties" : {
-            "SecurityGroupIngress" : {
-               "IpProtocol" : "tcp",
-               "SourceSecurityGroupId" : {
-                  "Ref" : "AppServerSecurityGroupId"
-               },
-               "ToPort" : "5432",
-               "FromPort" : "5432"
-            },
-            "GroupDescription" : "Security group for RDS DB Instance.",
-            "VpcId" : {
-               "Ref" : "VPCId"
-            }
-         }
-      },
-      "MyDBSubnetGroup" : {
-         "Properties" : {
-            "SubnetIds" : {
-               "Ref" : "Subnets"
-            },
-            "DBSubnetGroupDescription" : "Subnets available for the RDS DB Instance"
-         },
-         "Type" : "AWS::RDS::DBSubnetGroup"
-      },
-      "MyDB" : {
-         "Properties" : {
-            "DBName" : {
-               "Ref" : "DBName"
-            },
-            "DBInstanceClass" : {
-               "Ref" : "DBClass"
-            },
-            "MasterUsername" : {
-               "Ref" : "DBUsername"
-            },
-            "AllocatedStorage" : {
-               "Ref" : "DBAllocatedStorage"
-            },
-            "MasterUserPassword" : {
-               "Ref" : "DBPassword"
-            },
-            "MultiAZ" : "false",
-            "VPCSecurityGroups" : [
-               {
-                  "Ref" : "DBSecurityGroup"
-               }
-            ],
-            "Engine" : {
-               "Ref" : "Engine"
-            },
-            "DBSubnetGroupName" : {
-               "Ref" : "MyDBSubnetGroup"
-            },
-            "EngineVersion" : {
-               "Ref" : "EngineVersion"
-            }
-         },
-         "Type" : "AWS::RDS::DBInstance"
-      }
-   },
    "Parameters" : {
-      "DBUsername" : {
-         "MaxLength" : 16,
-         "Default" : "admin",
-         "ConstraintDescription" : "must begin with a letter and contain only alphanumeric characters.",
-         "MinLength" : 1,
-         "Type" : "String",
-         "NoEcho" : true,
-         "Description" : "The database admin account username",
-         "AllowedPattern" : "[a-zA-Z][a-zA-Z0-9]*"
-      },
-      "DBPassword" : {
-         "MaxLength" : 41,
-         "Default" : "password",
-         "ConstraintDescription" : "must contain only alphanumeric characters.",
-         "Type" : "String",
-         "MinLength" : 8,
-         "AllowedPattern" : "[a-zA-Z0-9]*",
-         "Description" : "The database admin account password",
-         "NoEcho" : true
-      },
-      "DBName" : {
-         "ConstraintDescription" : "must begin with a letter and contain only alphanumeric characters.",
-         "Default" : "MyDatabase",
-         "Description" : "The database name",
-         "AllowedPattern" : "[a-zA-Z][a-zA-Z0-9]*",
-         "MinLength" : 1,
-         "MaxLength" : 64,
-         "Type" : "String"
-      },
-      "AppServerSecurityGroupId" : {
-         "Description" : "App server security group id",
-         "Type" : "String"
-      },
       "DBAllocatedStorage" : {
-         "Default" : "5",
-         "ConstraintDescription" : "must be between 5 and 1024Gb.",
-         "MaxValue" : 1024,
          "Description" : "The size of the database (Gb)",
          "MinValue" : 5,
-         "Type" : "Number"
+         "Default" : "5",
+         "Type" : "Number",
+         "ConstraintDescription" : "must be between 5 and 1024Gb.",
+         "MaxValue" : 1024
+      },
+      "AppServerSecurityGroupId" : {
+         "Type" : "String",
+         "Description" : "App server security group id"
+      },
+      "DBPassword" : {
+         "Default" : "password",
+         "Type" : "String",
+         "Description" : "The database admin account password",
+         "NoEcho" : true,
+         "MaxLength" : 41,
+         "MinLength" : 8,
+         "ConstraintDescription" : "must contain only alphanumeric characters.",
+         "AllowedPattern" : "[a-zA-Z0-9]*"
+      },
+      "VPCId" : {
+         "Description" : "VPCId of your existing Virtual Private Cloud (VPC)",
+         "Type" : "String"
+      },
+      "DBUsername" : {
+         "MaxLength" : 16,
+         "MinLength" : 1,
+         "AllowedPattern" : "[a-zA-Z][a-zA-Z0-9]*",
+         "ConstraintDescription" : "must begin with a letter and contain only alphanumeric characters.",
+         "Type" : "String",
+         "Default" : "admin",
+         "Description" : "The database admin account username",
+         "NoEcho" : true
+      },
+      "Subnets" : {
+         "Type" : "CommaDelimitedList",
+         "Description" : "The list of SubnetIds, for at least two Availability Zones in the region in your Virtual Private Cloud (VPC)"
+      },
+      "Engine" : {
+         "Description" : "DB Engine",
+         "Default" : "postgres",
+         "AllowedValues" : [
+            "MySQL",
+            "aurora",
+            "mariadb",
+            "oracle-ee",
+            "oracle-se",
+            "oracle-se1",
+            "postgres",
+            "sqlserver-ee",
+            "sqlserver-ex",
+            "sqlserver-se",
+            "sqlserver-web"
+         ],
+         "Type" : "String"
       },
       "DBClass" : {
          "ConstraintDescription" : "must select a valid database instance type.",
+         "Description" : "Database instance class",
+         "Type" : "String",
+         "Default" : "db.t2.micro",
          "AllowedValues" : [
             "db.m1.large",
             "db.m1.medium",
@@ -158,41 +123,85 @@
             "db.t2.medium",
             "db.t2.micro",
             "db.t2.small"
-         ],
-         "Default" : "db.t2.micro",
-         "Description" : "Database instance class",
-         "Type" : "String"
+         ]
       },
-      "VPCId" : {
+      "DBName" : {
+         "AllowedPattern" : "[a-zA-Z][a-zA-Z0-9]*",
+         "ConstraintDescription" : "must begin with a letter and contain only alphanumeric characters.",
+         "MinLength" : 1,
+         "Description" : "The database name",
          "Type" : "String",
-         "Description" : "VPCId of your existing Virtual Private Cloud (VPC)"
-      },
-      "Engine" : {
-         "Description" : "DB Engine",
-         "AllowedValues" : [
-            "MySQL",
-            "aurora",
-            "mariadb",
-            "oracle-ee",
-            "oracle-se",
-            "oracle-se1",
-            "postgres",
-            "sqlserver-ee",
-            "sqlserver-ex",
-            "sqlserver-se",
-            "sqlserver-web"
-         ],
-         "Default" : "postgres",
-         "Type" : "String"
-      },
-      "Subnets" : {
-         "Type" : "CommaDelimitedList",
-         "Description" : "The list of SubnetIds, for at least two Availability Zones in the region in your Virtual Private Cloud (VPC)"
+         "MaxLength" : 64,
+         "Default" : "MyDatabase"
       },
       "EngineVersion" : {
+         "Default" : "9.5.2",
          "Type" : "String",
-         "Description" : "Engine Version",
-         "Default" : "9.5.2"
+         "Description" : "Engine Version"
       }
-   }
+   },
+   "Resources" : {
+      "MyDB" : {
+         "Type" : "AWS::RDS::DBInstance",
+         "Properties" : {
+            "MultiAZ" : "false",
+            "AllocatedStorage" : {
+               "Ref" : "DBAllocatedStorage"
+            },
+            "DBName" : {
+               "Ref" : "DBName"
+            },
+            "DBSubnetGroupName" : {
+               "Ref" : "MyDBSubnetGroup"
+            },
+            "VPCSecurityGroups" : [
+               {
+                  "Ref" : "DBSecurityGroup"
+               }
+            ],
+            "MasterUsername" : {
+               "Ref" : "DBUsername"
+            },
+            "EngineVersion" : {
+               "Ref" : "EngineVersion"
+            },
+            "DBInstanceClass" : {
+               "Ref" : "DBClass"
+            },
+            "MasterUserPassword" : {
+               "Ref" : "DBPassword"
+            },
+            "Engine" : {
+               "Ref" : "Engine"
+            }
+         }
+      },
+      "MyDBSubnetGroup" : {
+         "Properties" : {
+            "DBSubnetGroupDescription" : "Subnets available for the RDS DB Instance",
+            "SubnetIds" : {
+               "Ref" : "Subnets"
+            }
+         },
+         "Type" : "AWS::RDS::DBSubnetGroup"
+      },
+      "DBSecurityGroup" : {
+         "Properties" : {
+            "SecurityGroupIngress" : {
+               "SourceSecurityGroupId" : {
+                  "Ref" : "AppServerSecurityGroupId"
+               },
+               "FromPort" : "5432",
+               "ToPort" : "5432",
+               "IpProtocol" : "tcp"
+            },
+            "VpcId" : {
+               "Ref" : "VPCId"
+            },
+            "GroupDescription" : "Security group for RDS DB Instance."
+         },
+         "Type" : "AWS::EC2::SecurityGroup"
+      }
+   },
+   "Description" : "AWS CloudFormation Sample Template VPC_RDS_DB_Instance: Sample template showing how to create an RDS DBInstance in an existing Virtual Private Cloud (VPC). **WARNING** This template creates an Amazon Relational Database Service database instance. You will be billed for the AWS resources used if you create a stack from this template."
 }
