@@ -24,5 +24,5 @@
     security_group_id: "{{stack.stack_outputs['SecurityGroupId']}}"
     vpc_id: "{{stack.stack_outputs['VPC']}}"
 
-#- include: "roles/cloudformation/tasks/cf_rds.yml"
+- include: "roles/cloudformation/tasks/cf_rds.yml"
 - include: "roles/cloudformation/tasks/cf_cache.yml"

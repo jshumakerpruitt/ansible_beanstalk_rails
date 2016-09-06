@@ -2,7 +2,7 @@
 - name: create option_settings
   template:
     src="./roles/beanstalk/templates/option_settings.config.j2"
-    dest="./output/option_settings.yml"
+    dest="./output/option_settings.config"
 
 - name: create beanstalk config.yml
   template:
