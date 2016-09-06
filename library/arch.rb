@@ -140,7 +140,7 @@ CloudFormation {
   #private subnet 1c
   #ec2 instances go here
   EC2_Subnet "PrivateSubnet1c" do
-    AvailabilityZone 'us-east-1c'
+    AvailabilityZone 'us-east-1d'
     VpcId Ref("VPC")
     CidrBlock "10.0.2.0/24"
   end
@@ -170,7 +170,7 @@ CloudFormation {
   #public subnet 1c
   #load balancers and NAT go here
   EC2_Subnet "PublicSubnet1c" do
-    AvailabilityZone 'us-east-1c'
+    AvailabilityZone 'us-east-1d'
     VpcId Ref("VPC")
     CidrBlock "10.0.3.0/24"
   end
