@@ -4,6 +4,16 @@ CloudFormation {
     ConstraintDescription 'Must be a valid keyname'
   end
 
+  Parameter 'AvailabilityZoneA' do
+    Description 'Must be a valid Availability Zone'
+    Type 'String'
+  end
+
+  Parameter 'AvailabilityZoneB' do
+    Description 'Must be a valid Availability Zone'
+    Type 'String'
+  end
+
   Output 'KeyName' do
     Description 'EC2 Keyname to Access Bastion Host'
     Value Ref('KeyName')
@@ -79,119 +89,119 @@ CloudFormation {
     Value Ref('SecurityGroup')
   end
 
-  #private subnet 1b
+  #private subnet A
   #ec2 instances go here
-  EC2_Subnet "PrivateSubnet1b" do
-    AvailabilityZone 'us-east-1b'
+  EC2_Subnet "PrivateSubnetA" do
+    AvailabilityZone Ref('AvailabilityZoneA')
     VpcId Ref("VPC")
     CidrBlock "10.0.0.0/24"
   end
 
-  Output 'PrivateSubnet1b' do
+  Output 'PrivateSubnetA' do
     Description 'Private EC2 Instance Subnet 1'
-    Value Ref('PrivateSubnet1b')
+    Value Ref('PrivateSubnetA')
   end
 
-  EC2_RouteTable "PrivateRouteTable1b" do
+  EC2_RouteTable "PrivateRouteTableA" do
     VpcId Ref("VPC")
   end
 
-  EC2_SubnetRouteTableAssociation "PrivateSubnetRouteTableAssociation1b" do
-    RouteTableId Ref("PrivateRouteTable1b")
-    SubnetId Ref("PrivateSubnet1b")
+  EC2_SubnetRouteTableAssociation "PrivateSubnetRouteTableAssociationA" do
+    RouteTableId Ref("PrivateRouteTableA")
+    SubnetId Ref("PrivateSubnetA")
   end
 
-  EC2_Route "PrivateRoute1b" do
+  EC2_Route "PrivateRouteA" do
     DestinationCidrBlock "0.0.0.0/0"
-    RouteTableId Ref("PrivateRouteTable1b")
-    NatGatewayId Ref("NatGateway1b")
-    DependsOn ["NatGateway1b",
-               "PrivateRouteTable1b"]
+    RouteTableId Ref("PrivateRouteTableA")
+    NatGatewayId Ref("NatGatewayA")
+    DependsOn ["NatGatewayA",
+               "PrivateRouteTableA"]
   end
 
 
-  #public subnet 1b
+  #public subnet A
   #load balancers and NAT go here
-  EC2_Subnet "PublicSubnet1b" do
-    AvailabilityZone 'us-east-1b'
+  EC2_Subnet "PublicSubnetA" do
+    AvailabilityZone Ref('AvailabilityZoneA')
     VpcId Ref("VPC")
     CidrBlock "10.0.1.0/24"
   end
 
-  Output 'PublicSubnet1b' do
+  Output 'PublicSubnetA' do
     Description 'Public ELB Subnet 1'
-    Value Ref('PublicSubnet1b')
+    Value Ref('PublicSubnetA')
   end
 
-  EC2_EIP 'NatEip1b' do
+  EC2_EIP 'NatEipA' do
     Domain 'VPC'
   end
 
-  EC2_NatGateway 'NatGateway1b' do
-    AllocationId FnGetAtt('NatEip1b', 'AllocationId')
-    SubnetId Ref("PublicSubnet1b")
+  EC2_NatGateway 'NatGatewayA' do
+    AllocationId FnGetAtt('NatEipA', 'AllocationId')
+    SubnetId Ref("PublicSubnetA")
   end
 
-  EC2_SubnetRouteTableAssociation "PublicSubnetRouteTableAssociation1b" do
+  EC2_SubnetRouteTableAssociation "PublicSubnetRouteTableAssociationA" do
     RouteTableId Ref("PublicRouteTable")
-    SubnetId Ref("PublicSubnet1b")
+    SubnetId Ref("PublicSubnetA")
   end
 
-  #private subnet 1c
+  #private subnet B
   #ec2 instances go here
-  EC2_Subnet "PrivateSubnet1c" do
-    AvailabilityZone 'us-east-1d'
+  EC2_Subnet "PrivateSubnetB" do
+    AvailabilityZone Ref('AvailabilityZoneB')
     VpcId Ref("VPC")
     CidrBlock "10.0.2.0/24"
   end
 
-  Output 'PrivateSubnet1c' do
+  Output 'PrivateSubnetB' do
     Description 'Private EC2 Instance Subnet 2'
-    Value Ref('PrivateSubnet1c')
+    Value Ref('PrivateSubnetB')
   end
 
-  EC2_RouteTable "PrivateRouteTable1c" do
+  EC2_RouteTable "PrivateRouteTableB" do
     VpcId Ref("VPC")
   end
 
-  EC2_SubnetRouteTableAssociation "PrivateSubnetRouteTableAssociation1c" do
-    RouteTableId Ref("PrivateRouteTable1c")
-    SubnetId Ref("PrivateSubnet1c")
+  EC2_SubnetRouteTableAssociation "PrivateSubnetRouteTableAssociationB" do
+    RouteTableId Ref("PrivateRouteTableB")
+    SubnetId Ref("PrivateSubnetB")
   end
 
-  EC2_Route "PrivateRoute1c" do
+  EC2_Route "PrivateRouteB" do
     DestinationCidrBlock "0.0.0.0/0"
-    RouteTableId Ref("PrivateRouteTable1c")
-    NatGatewayId Ref("NatGateway1c")
-    DependsOn ["NatGateway1c",
-               "PrivateRouteTable1c"]
+    RouteTableId Ref("PrivateRouteTableB")
+    NatGatewayId Ref("NatGatewayB")
+    DependsOn ["NatGatewayB",
+               "PrivateRouteTableB"]
   end
 
-  #public subnet 1c
+  #public subnet B
   #load balancers and NAT go here
-  EC2_Subnet "PublicSubnet1c" do
-    AvailabilityZone 'us-east-1d'
+  EC2_Subnet "PublicSubnetB" do
+    AvailabilityZone Ref('AvailabilityZoneB')
     VpcId Ref("VPC")
     CidrBlock "10.0.3.0/24"
   end
 
-  Output 'PublicSubnet1c' do
+  Output 'PublicSubnetB' do
     Description 'Public EC2 Instance Subnet 2'
-    Value Ref('PublicSubnet1c')
+    Value Ref('PublicSubnetB')
   end
 
-  EC2_EIP 'NatEip1c' do
+  EC2_EIP 'NatEipB' do
     Domain 'VPC'
   end
 
-  EC2_NatGateway 'NatGateway1c' do
-    AllocationId FnGetAtt('NatEip1c', 'AllocationId')
-    SubnetId Ref("PublicSubnet1c")
+  EC2_NatGateway 'NatGatewayB' do
+    AllocationId FnGetAtt('NatEipB', 'AllocationId')
+    SubnetId Ref("PublicSubnetB")
   end
 
-  EC2_SubnetRouteTableAssociation "PublicSubnetRouteTableAssociation1c" do
+  EC2_SubnetRouteTableAssociation "PublicSubnetRouteTableAssociationB" do
     RouteTableId Ref("PublicRouteTable")
-    SubnetId Ref("PublicSubnet1c")
+    SubnetId Ref("PublicSubnetB")
   end
 
   #bastion host
@@ -205,7 +215,7 @@ CloudFormation {
   end
 
   EC2_Instance 'BastionHost' do
-    SubnetId Ref('PublicSubnet1b')
+    SubnetId Ref('PublicSubnetA')
     SecurityGroupIds [Ref("BastionSecurityGroup")]
     KeyName Ref('KeyName')
     ImageId "ami-6869aa05"

@@ -1,8 +1,15 @@
 ---
 aws_region: us-east-1
+availability_zone_a: us-east-1c
+availability_zone_b: us-east-1d
 key_name: us-east
 instance_type: t2.micro
 db_class: db.t2.micro
 db_allocated_storage: 5
 db_engine: postgres
 db_engine_version: 9.5.2
+eb_solution_stack_name: "64bit Amazon Linux 2016.03 v2.1.6 running Ruby 2.3 (Puma)"
+eb_environment_name: rails-staging
+eb_application_name: eb-rails
+eb_asg_min: 1
+eb_asg_max: 4
