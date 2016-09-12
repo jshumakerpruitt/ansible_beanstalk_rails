@@ -1,2 +1,3 @@
 *.retry
 output/
+!output/packages.config
