@@ -5,23 +5,20 @@
     state=present
     region="{{aws_region}}"
     disable_rollback=true
-    template="roles/cloudformation/templates/beanstalk.json"
+    template="roles/cloudformation/templates/cf_app_env.json"
   args:
     template_parameters:
       KeyName: "{{key_name}}"
+      SolutionStackName: "{{eb_solution_stack_name}}"
+      EnvironmentName: "{{eb_environment_name}}"
+      ApplicationName: "{{eb_application_name}}"
+      ASGMin: "{{eb_asg_min}}"
+      ASGMax: "{{eb_asg_max}}"
   register: stack
 
 - name: show stack outputs  
   debug: msg="{{stack.stack_outputs}}"
 
-- name: set facts
-  set_fact:
-    bastion_ip: "{{stack.stack_outputs['BastionHostEIP']}}"
-    private_subnet1: "{{stack.stack_outputs['PrivateSubnet1b']}}"
-    private_subnet2: "{{stack.stack_outputs['PrivateSubnet1c']}}"
-    public_subnet1: "{{stack.stack_outputs['PublicSubnet1b']}}"
-    public_subnet2: "{{stack.stack_outputs['PublicSubnet1c']}}"
-    security_group_id: "{{stack.stack_outputs['SecurityGroup']}}"
-    vpc_id: "{{stack.stack_outputs['VPC']}}"
-
-- include: "roles/cloudformation/tasks/cf_rds.yml"
+#- name: set facts
+#  set_fact:
+#    bastion_ip: "{{stack.stack_outputs['BastionHostEIP']}}"

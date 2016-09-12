@@ -9,6 +9,8 @@
   args:
     template_parameters:
       KeyName: "{{key_name}}"
+      AvailabilityZoneA: "{{availability_zone_a}}"
+      AvailabilityZoneB: "{{availability_zone_b}}"
   register: stack
 
 - name: show stack outputs  
@@ -26,3 +28,4 @@
 
 - include: "roles/cloudformation/tasks/cf_rds.yml"
 - include: "roles/cloudformation/tasks/cf_cache.yml"
+#- include: "roles/cloudformation/tasks/beanstalk.yml"

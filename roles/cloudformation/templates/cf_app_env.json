@@ -1,0 +1,108 @@
+{
+   "Parameters" : {
+      "SolutionStackName" : {
+         "Description" : "Solution Stack Name",
+         "Type" : "String"
+      },
+      "EnvironmentName" : {
+         "Description" : "Environment name e.g. rails-staging",
+         "Type" : "String"
+      },
+      "KeyName" : {
+         "Description" : "EC2 Key Name for SSH Access",
+         "Type" : "AWS::EC2::KeyPair::KeyName"
+      },
+      "ASGMin" : {
+         "Description" : "Min number of instances in ASG",
+         "Type" : "Number"
+      },
+      "ApplicationName" : {
+         "Type" : "String",
+         "Description" : "Application name e.g. my-app"
+      },
+      "ASGMax" : {
+         "Type" : "Number",
+         "Description" : "Max number of instances in ASG"
+      }
+   },
+   "Resources" : {
+      "BeanstalkApplication" : {
+         "Properties" : {
+            "Description" : "EB application",
+            "ApplicationName" : {
+               "Ref" : "ApplicationName"
+            }
+         },
+         "Type" : "AWS::ElasticBeanstalk::Application"
+      },
+      "BeanstalkConfigurationTemplate" : {
+         "Type" : "AWS::ElasticBeanstalk::ConfigurationTemplate",
+         "Properties" : {
+            "ApplicationName" : {
+               "Ref" : "BeanstalkApplication"
+            },
+            "OptionSettings" : [
+               {
+                  "Namespace" : "aws:autoscaling:asg",
+                  "OptionName" : "MinSize",
+                  "Value" : {
+                     "Ref" : "ASGMin"
+                  }
+               },
+               {
+                  "OptionName" : "MaxSize",
+                  "Value" : {
+                     "Ref" : "ASGMax"
+                  },
+                  "Namespace" : "aws:autoscaling:asg"
+               },
+               {
+                  "Namespace" : "aws:autoscaling:launchconfiguration",
+                  "OptionName" : "EC2KeyName",
+                  "Value" : {
+                     "Ref" : "KeyName"
+                  }
+               },
+               {
+                  "OptionName" : "EnvironmentType",
+                  "Value" : "LoadBalanced",
+                  "Namespace" : "aws:elasticbeanstalk:environment"
+               },
+               {
+                  "OptionName" : "CrossZone",
+                  "Value" : "true",
+                  "Namespace" : "aws:elb:loadbalancer"
+               },
+               {
+                  "Value" : "application",
+                  "OptionName" : "LoadBalancerType",
+                  "Namespace" : "aws:elasticbeanstalk:environment"
+               }
+            ],
+            "Description" : "AWS ElasticBeanstalk Configuration Template",
+            "SolutionStackName" : {
+               "Ref" : "SolutionStackName"
+            }
+         }
+      },
+      "BeanstalkEnvironment" : {
+         "Properties" : {
+            "ApplicationName" : {
+               "Ref" : "BeanstalkApplication"
+            },
+            "Tier" : {
+               "Type" : "Standard",
+               "Name" : "WebServer"
+            },
+            "Description" : "AWS Elastic Beanstalk Environment",
+            "EnvironmentName" : {
+               "Ref" : "EnvironmentName"
+            },
+            "TemplateName" : "DefaultConfiguration"
+         },
+         "Type" : "AWS::ElasticBeanstalk::Environment"
+      }
+   },
+   "AWSTemplateFormatVersion" : "2010-09-09",
+   "Description" : "Template to create EB App+Env"
+}
