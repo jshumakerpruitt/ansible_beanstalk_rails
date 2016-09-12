@@ -1,53 +1,113 @@
 {
-   "Resources" : {
-      "BastionHost" : {
-         "Type" : "AWS::EC2::Instance",
-         "Properties" : {
-            "ImageId" : "ami-6869aa05",
-            "InstanceType" : "t2.micro",
-            "KeyName" : {
-               "Ref" : "KeyName"
-            },
-            "SecurityGroupIds" : [
-               {
-                  "Ref" : "BastionSecurityGroup"
-               }
-            ],
-            "SubnetId" : {
-               "Ref" : "PublicSubnet1b"
-            }
-         }
+   "Parameters" : {
+      "AvailabilityZoneB" : {
+         "Type" : "String",
+         "Description" : "Must be a valid Availability Zone"
       },
-      "NatGateway1b" : {
+      "KeyName" : {
+         "Type" : "AWS::EC2::KeyPair::KeyName",
+         "ConstraintDescription" : "Must be a valid keyname"
+      },
+      "AvailabilityZoneA" : {
+         "Description" : "Must be a valid Availability Zone",
+         "Type" : "String"
+      }
+   },
+   "Resources" : {
+      "NatGatewayA" : {
          "Type" : "AWS::EC2::NatGateway",
          "Properties" : {
-            "SubnetId" : {
-               "Ref" : "PublicSubnet1b"
-            },
             "AllocationId" : {
                "Fn::GetAtt" : [
-                  "NatEip1b",
+                  "NatEipA",
                   "AllocationId"
                ]
+            },
+            "SubnetId" : {
+               "Ref" : "PublicSubnetA"
             }
          }
       },
-      "PublicRouteTable" : {
+      "BastionHostEIP" : {
          "Properties" : {
+            "Domain" : "VPC"
+         },
+         "Type" : "AWS::EC2::EIP"
+      },
+      "PublicSubnetA" : {
+         "Type" : "AWS::EC2::Subnet",
+         "Properties" : {
+            "AvailabilityZone" : {
+               "Ref" : "AvailabilityZoneA"
+            },
+            "CidrBlock" : "10.0.1.0/24",
             "VpcId" : {
                "Ref" : "VPC"
             }
-         },
-         "Type" : "AWS::EC2::RouteTable",
-         "DependsOn" : "VPC"
+         }
       },
-      "VPC" : {
+      "PrivateSubnetA" : {
+         "Type" : "AWS::EC2::Subnet",
          "Properties" : {
-            "EnableDnsHostnames" : "true",
-            "EnableDnsSupport" : "true",
-            "CidrBlock" : "10.0.0.0/16"
+            "CidrBlock" : "10.0.0.0/24",
+            "AvailabilityZone" : {
+               "Ref" : "AvailabilityZoneA"
+            },
+            "VpcId" : {
+               "Ref" : "VPC"
+            }
+         }
+      },
+      "PrivateRouteA" : {
+         "Type" : "AWS::EC2::Route",
+         "DependsOn" : [
+            "NatGatewayA",
+            "PrivateRouteTableA"
+         ],
+         "Properties" : {
+            "RouteTableId" : {
+               "Ref" : "PrivateRouteTableA"
+            },
+            "NatGatewayId" : {
+               "Ref" : "NatGatewayA"
+            },
+            "DestinationCidrBlock" : "0.0.0.0/0"
+         }
+      },
+      "NatEipB" : {
+         "Properties" : {
+            "Domain" : "VPC"
          },
-         "Type" : "AWS::EC2::VPC"
+         "Type" : "AWS::EC2::EIP"
+      },
+      "BastionSecurityGroup" : {
+         "Properties" : {
+            "SecurityGroupEgress" : {
+               "FromPort" : "0",
+               "ToPort" : "10000",
+               "IpProtocol" : "tcp",
+               "CidrIp" : "0.0.0.0/0"
+            },
+            "VpcId" : {
+               "Ref" : "VPC"
+            },
+            "GroupDescription" : "Allow SSH traffic to bastion host",
+            "SecurityGroupIngress" : [
+               {
+                  "FromPort" : "22",
+                  "ToPort" : "22",
+                  "IpProtocol" : "tcp",
+                  "CidrIp" : "0.0.0.0/0"
+               },
+               {
+                  "FromPort" : "8123",
+                  "ToPort" : "8123",
+                  "IpProtocol" : "-1",
+                  "CidrIp" : "0.0.0.0/0"
+               }
+            ]
+         },
+         "Type" : "AWS::EC2::SecurityGroup"
       },
       "InternetGateway" : {
          "Type" : "AWS::EC2::InternetGateway",
@@ -55,6 +115,44 @@
             "VPC",
             "PublicRouteTable"
          ]
+      },
+      "PrivateRouteTableA" : {
+         "Properties" : {
+            "VpcId" : {
+               "Ref" : "VPC"
+            }
+         },
+         "Type" : "AWS::EC2::RouteTable"
+      },
+      "PublicSubnetB" : {
+         "Properties" : {
+            "VpcId" : {
+               "Ref" : "VPC"
+            },
+            "AvailabilityZone" : {
+               "Ref" : "AvailabilityZoneB"
+            },
+            "CidrBlock" : "10.0.3.0/24"
+         },
+         "Type" : "AWS::EC2::Subnet"
+      },
+      "BastionHostEIPAssociation" : {
+         "Type" : "AWS::EC2::EIPAssociation",
+         "DependsOn" : [
+            "BastionHostEIP",
+            "BastionHost"
+         ],
+         "Properties" : {
+            "AllocationId" : {
+               "Fn::GetAtt" : [
+                  "BastionHostEIP",
+                  "AllocationId"
+               ]
+            },
+            "InstanceId" : {
+               "Ref" : "BastionHost"
+            }
+         }
       },
       "VPCGatewayAttachment" : {
          "DependsOn" : [
@@ -71,209 +169,36 @@
             }
          }
       },
-      "PublicSubnetRouteTableAssociation1c" : {
-         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "BastionHost" : {
+         "Type" : "AWS::EC2::Instance",
          "Properties" : {
-            "RouteTableId" : {
-               "Ref" : "PublicRouteTable"
+            "KeyName" : {
+               "Ref" : "KeyName"
             },
-            "SubnetId" : {
-               "Ref" : "PublicSubnet1c"
-            }
-         }
-      },
-      "NatEip1b" : {
-         "Properties" : {
-            "Domain" : "VPC"
-         },
-         "Type" : "AWS::EC2::EIP"
-      },
-      "BastionSecurityGroup" : {
-         "Type" : "AWS::EC2::SecurityGroup",
-         "Properties" : {
-            "SecurityGroupIngress" : {
-               "CidrIp" : "0.0.0.0/0",
-               "FromPort" : "22",
-               "ToPort" : "22",
-               "IpProtocol" : "tcp"
-            },
-            "GroupDescription" : "Allow SSH traffic to bastion host",
-            "VpcId" : {
-               "Ref" : "VPC"
-            },
-            "SecurityGroupEgress" : {
-               "FromPort" : "22",
-               "CidrIp" : "0.0.0.0/0",
-               "IpProtocol" : "tcp",
-               "ToPort" : "22"
-            }
-         }
-      },
-      "PrivateRoute1c" : {
-         "Type" : "AWS::EC2::Route",
-         "Properties" : {
-            "RouteTableId" : {
-               "Ref" : "PrivateRouteTable1c"
-            },
-            "DestinationCidrBlock" : "0.0.0.0/0",
-            "NatGatewayId" : {
-               "Ref" : "NatGateway1c"
-            }
-         },
-         "DependsOn" : [
-            "NatGateway1c",
-            "PrivateRouteTable1c"
-         ]
-      },
-      "PublicSubnet1c" : {
-         "Type" : "AWS::EC2::Subnet",
-         "Properties" : {
-            "CidrBlock" : "10.0.3.0/24",
-            "AvailabilityZone" : "us-east-1d",
-            "VpcId" : {
-               "Ref" : "VPC"
-            }
-         }
-      },
-      "NatEip1c" : {
-         "Properties" : {
-            "Domain" : "VPC"
-         },
-         "Type" : "AWS::EC2::EIP"
-      },
-      "SecurityGroup" : {
-         "Properties" : {
-            "GroupDescription" : "App Server Security Group",
-            "VpcId" : {
-               "Ref" : "VPC"
-            },
-            "SecurityGroupIngress" : [
+            "SecurityGroupIds" : [
                {
-                  "IpProtocol" : "tcp",
-                  "ToPort" : "22",
-                  "CidrIp" : "10.0.0.0/16",
-                  "FromPort" : "22"
-               },
-               {
-                  "ToPort" : "5432",
-                  "IpProtocol" : "tcp",
-                  "FromPort" : "5432",
-                  "CidrIp" : "10.0.0.0/16"
-               },
-               {
-                  "IpProtocol" : "tcp",
-                  "ToPort" : "80",
-                  "FromPort" : "80",
-                  "CidrIp" : "10.0.0.0/16"
-               },
-               {
-                  "CidrIp" : "10.0.0.0/16",
-                  "FromPort" : "6379",
-                  "ToPort" : "6379",
-                  "IpProtocol" : "tcp"
+                  "Ref" : "BastionSecurityGroup"
                }
-            ]
-         },
-         "Type" : "AWS::EC2::SecurityGroup"
-      },
-      "NatGateway1c" : {
-         "Type" : "AWS::EC2::NatGateway",
-         "Properties" : {
+            ],
+            "ImageId" : "ami-6869aa05",
+            "InstanceType" : "t2.micro",
             "SubnetId" : {
-               "Ref" : "PublicSubnet1c"
-            },
-            "AllocationId" : {
-               "Fn::GetAtt" : [
-                  "NatEip1c",
-                  "AllocationId"
-               ]
+               "Ref" : "PublicSubnetA"
             }
          }
       },
-      "PublicRoute" : {
-         "Type" : "AWS::EC2::Route",
-         "Properties" : {
-            "RouteTableId" : {
-               "Ref" : "PublicRouteTable"
-            },
-            "GatewayId" : {
-               "Ref" : "InternetGateway"
-            },
-            "DestinationCidrBlock" : "0.0.0.0/0"
-         },
-         "DependsOn" : [
-            "VPCGatewayAttachment",
-            "InternetGateway",
-            "PublicRouteTable"
-         ]
-      },
-      "PrivateRoute1b" : {
-         "Type" : "AWS::EC2::Route",
-         "Properties" : {
-            "NatGatewayId" : {
-               "Ref" : "NatGateway1b"
-            },
-            "DestinationCidrBlock" : "0.0.0.0/0",
-            "RouteTableId" : {
-               "Ref" : "PrivateRouteTable1b"
-            }
-         },
-         "DependsOn" : [
-            "NatGateway1b",
-            "PrivateRouteTable1b"
-         ]
-      },
-      "PublicSubnetRouteTableAssociation1b" : {
+      "PublicSubnetRouteTableAssociationB" : {
          "Type" : "AWS::EC2::SubnetRouteTableAssociation",
          "Properties" : {
+            "SubnetId" : {
+               "Ref" : "PublicSubnetB"
+            },
             "RouteTableId" : {
                "Ref" : "PublicRouteTable"
-            },
-            "SubnetId" : {
-               "Ref" : "PublicSubnet1b"
             }
          }
       },
-      "PrivateSubnetRouteTableAssociation1b" : {
-         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
-         "Properties" : {
-            "RouteTableId" : {
-               "Ref" : "PrivateRouteTable1b"
-            },
-            "SubnetId" : {
-               "Ref" : "PrivateSubnet1b"
-            }
-         }
-      },
-      "PublicSubnet1b" : {
-         "Type" : "AWS::EC2::Subnet",
-         "Properties" : {
-            "CidrBlock" : "10.0.1.0/24",
-            "AvailabilityZone" : "us-east-1b",
-            "VpcId" : {
-               "Ref" : "VPC"
-            }
-         }
-      },
-      "BastionHostEIPAssociation" : {
-         "DependsOn" : [
-            "BastionHostEIP",
-            "BastionHost"
-         ],
-         "Properties" : {
-            "InstanceId" : {
-               "Ref" : "BastionHost"
-            },
-            "AllocationId" : {
-               "Fn::GetAtt" : [
-                  "BastionHostEIP",
-                  "AllocationId"
-               ]
-            }
-         },
-         "Type" : "AWS::EC2::EIPAssociation"
-      },
-      "PrivateRouteTable1c" : {
+      "PrivateRouteTableB" : {
          "Properties" : {
             "VpcId" : {
                "Ref" : "VPC"
@@ -281,75 +206,174 @@
          },
          "Type" : "AWS::EC2::RouteTable"
       },
-      "PrivateRouteTable1b" : {
-         "Type" : "AWS::EC2::RouteTable",
+      "PrivateSubnetB" : {
+         "Type" : "AWS::EC2::Subnet",
          "Properties" : {
+            "AvailabilityZone" : {
+               "Ref" : "AvailabilityZoneB"
+            },
+            "CidrBlock" : "10.0.2.0/24",
             "VpcId" : {
                "Ref" : "VPC"
             }
          }
       },
-      "PrivateSubnet1c" : {
-         "Type" : "AWS::EC2::Subnet",
+      "PublicRouteTable" : {
+         "Properties" : {
+            "VpcId" : {
+               "Ref" : "VPC"
+            }
+         },
+         "Type" : "AWS::EC2::RouteTable",
+         "DependsOn" : "VPC"
+      },
+      "SecurityGroup" : {
          "Properties" : {
             "VpcId" : {
                "Ref" : "VPC"
             },
-            "AvailabilityZone" : "us-east-1d",
-            "CidrBlock" : "10.0.2.0/24"
+            "GroupDescription" : "App Server Security Group",
+            "SecurityGroupIngress" : [
+               {
+                  "IpProtocol" : "tcp",
+                  "CidrIp" : "10.0.0.0/16",
+                  "FromPort" : "22",
+                  "ToPort" : "22"
+               },
+               {
+                  "CidrIp" : "10.0.0.0/16",
+                  "IpProtocol" : "tcp",
+                  "ToPort" : "5432",
+                  "FromPort" : "5432"
+               },
+               {
+                  "ToPort" : "80",
+                  "FromPort" : "80",
+                  "CidrIp" : "10.0.0.0/16",
+                  "IpProtocol" : "tcp"
+               },
+               {
+                  "FromPort" : "6379",
+                  "ToPort" : "6379",
+                  "IpProtocol" : "tcp",
+                  "CidrIp" : "10.0.0.0/16"
+               }
+            ]
+         },
+         "Type" : "AWS::EC2::SecurityGroup"
+      },
+      "NatGatewayB" : {
+         "Properties" : {
+            "SubnetId" : {
+               "Ref" : "PublicSubnetB"
+            },
+            "AllocationId" : {
+               "Fn::GetAtt" : [
+                  "NatEipB",
+                  "AllocationId"
+               ]
+            }
+         },
+         "Type" : "AWS::EC2::NatGateway"
+      },
+      "PrivateSubnetRouteTableAssociationB" : {
+         "Properties" : {
+            "SubnetId" : {
+               "Ref" : "PrivateSubnetB"
+            },
+            "RouteTableId" : {
+               "Ref" : "PrivateRouteTableB"
+            }
+         },
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation"
+      },
+      "PrivateRouteB" : {
+         "Properties" : {
+            "NatGatewayId" : {
+               "Ref" : "NatGatewayB"
+            },
+            "RouteTableId" : {
+               "Ref" : "PrivateRouteTableB"
+            },
+            "DestinationCidrBlock" : "0.0.0.0/0"
+         },
+         "Type" : "AWS::EC2::Route",
+         "DependsOn" : [
+            "NatGatewayB",
+            "PrivateRouteTableB"
+         ]
+      },
+      "PrivateSubnetRouteTableAssociationA" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "RouteTableId" : {
+               "Ref" : "PrivateRouteTableA"
+            },
+            "SubnetId" : {
+               "Ref" : "PrivateSubnetA"
+            }
          }
       },
-      "BastionHostEIP" : {
+      "VPC" : {
+         "Properties" : {
+            "CidrBlock" : "10.0.0.0/16",
+            "EnableDnsSupport" : "true",
+            "EnableDnsHostnames" : "true"
+         },
+         "Type" : "AWS::EC2::VPC"
+      },
+      "PublicRoute" : {
+         "Properties" : {
+            "GatewayId" : {
+               "Ref" : "InternetGateway"
+            },
+            "RouteTableId" : {
+               "Ref" : "PublicRouteTable"
+            },
+            "DestinationCidrBlock" : "0.0.0.0/0"
+         },
+         "Type" : "AWS::EC2::Route",
+         "DependsOn" : [
+            "VPCGatewayAttachment",
+            "InternetGateway",
+            "PublicRouteTable"
+         ]
+      },
+      "PublicSubnetRouteTableAssociationA" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "SubnetId" : {
+               "Ref" : "PublicSubnetA"
+            },
+            "RouteTableId" : {
+               "Ref" : "PublicRouteTable"
+            }
+         }
+      },
+      "NatEipA" : {
          "Properties" : {
             "Domain" : "VPC"
          },
          "Type" : "AWS::EC2::EIP"
-      },
-      "PrivateSubnetRouteTableAssociation1c" : {
-         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
-         "Properties" : {
-            "SubnetId" : {
-               "Ref" : "PrivateSubnet1c"
-            },
-            "RouteTableId" : {
-               "Ref" : "PrivateRouteTable1c"
-            }
-         }
-      },
-      "PrivateSubnet1b" : {
-         "Type" : "AWS::EC2::Subnet",
-         "Properties" : {
-            "VpcId" : {
-               "Ref" : "VPC"
-            },
-            "AvailabilityZone" : "us-east-1b",
-            "CidrBlock" : "10.0.0.0/24"
-         }
       }
    },
    "Outputs" : {
-      "SecurityGroupId" : {
-         "Description" : "Main VPC Security Group id",
+      "PrivateSubnetA" : {
+         "Description" : "Private EC2 Instance Subnet 1",
          "Value" : {
-            "Ref" : "SecurityGroup"
+            "Ref" : "PrivateSubnetA"
          }
       },
       "KeyName" : {
+         "Description" : "EC2 Keyname to Access Bastion Host",
          "Value" : {
             "Ref" : "KeyName"
-         },
-         "Description" : "EC2 Keyname to Access Bastion Host"
-      },
-      "PublicSubnet1b" : {
-         "Description" : "Public ELB Subnet 1",
-         "Value" : {
-            "Ref" : "PublicSubnet1b"
          }
       },
-      "VPC" : {
-         "Description" : "VPC id",
+      "PublicSubnetA" : {
+         "Description" : "Public ELB Subnet 1",
          "Value" : {
-            "Ref" : "VPC"
+            "Ref" : "PublicSubnetA"
          }
       },
       "BastionHostEIP" : {
@@ -358,30 +382,36 @@
             "Ref" : "BastionHostEIP"
          }
       },
-      "PrivateSubnet1b" : {
-         "Description" : "Private EC2 Instance Subnet 1",
+      "PrivateSubnetB" : {
          "Value" : {
-            "Ref" : "PrivateSubnet1b"
+            "Ref" : "PrivateSubnetB"
+         },
+         "Description" : "Private EC2 Instance Subnet 2"
+      },
+      "SecurityGroupId" : {
+         "Description" : "Main VPC Security Group id",
+         "Value" : {
+            "Ref" : "SecurityGroup"
          }
       },
-      "PrivateSubnet1c" : {
-         "Description" : "Private EC2 Instance Subnet 2",
-         "Value" : {
-            "Ref" : "PrivateSubnet1c"
-         }
-      },
-      "PublicSubnet1c" : {
+      "PublicSubnetB" : {
          "Description" : "Public EC2 Instance Subnet 2",
          "Value" : {
-            "Ref" : "PublicSubnet1c"
+            "Ref" : "PublicSubnetB"
+         }
+      },
+      "BastionHostId" : {
+         "Description" : "Bastion Host Logical Id",
+         "Value" : {
+            "Ref" : "BastionHost"
+         }
+      },
+      "VPC" : {
+         "Description" : "VPC id",
+         "Value" : {
+            "Ref" : "VPC"
          }
       }
    },
-   "AWSTemplateFormatVersion" : "2010-09-09",
-   "Parameters" : {
-      "KeyName" : {
-         "ConstraintDescription" : "Must be a valid keyname",
-         "Type" : "AWS::EC2::KeyPair::KeyName"
-      }
-   }
+   "AWSTemplateFormatVersion" : "2010-09-09"
 }

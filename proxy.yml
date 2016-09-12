@@ -1,0 +1,8 @@
+---
+- hosts: all
+  roles:
+    - es_reverse_proxy
+  pre_tasks:
+    - name: disable fingerprint checking that may be enabled; when enabled, causes ssh issues
+      command: authconfig --disablefingerprint --update
+      become: yes

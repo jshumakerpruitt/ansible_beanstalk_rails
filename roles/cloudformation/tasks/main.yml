@@ -19,13 +19,13 @@
 - name: set facts
   set_fact:
     bastion_ip: "{{stack.stack_outputs['BastionHostEIP']}}"
-    private_subnet1: "{{stack.stack_outputs['PrivateSubnet1b']}}"
-    private_subnet2: "{{stack.stack_outputs['PrivateSubnet1c']}}"
-    public_subnet1: "{{stack.stack_outputs['PublicSubnet1b']}}"
-    public_subnet2: "{{stack.stack_outputs['PublicSubnet1c']}}"
+    private_subnet1: "{{stack.stack_outputs['PrivateSubnetA']}}"
+    private_subnet2: "{{stack.stack_outputs['PrivateSubnetB']}}"
+    public_subnet1: "{{stack.stack_outputs['PublicSubnetA']}}"
+    public_subnet2: "{{stack.stack_outputs['PublicSubnetB']}}"
     security_group_id: "{{stack.stack_outputs['SecurityGroupId']}}"
     vpc_id: "{{stack.stack_outputs['VPC']}}"
 
 - include: "roles/cloudformation/tasks/cf_rds.yml"
-- include: "roles/cloudformation/tasks/cf_cache.yml"
+#- include: "roles/cloudformation/tasks/cf_cache.yml"
 #- include: "roles/cloudformation/tasks/beanstalk.yml"

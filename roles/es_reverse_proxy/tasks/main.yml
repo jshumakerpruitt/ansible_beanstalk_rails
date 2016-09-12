@@ -1,0 +1,19 @@
+---
+- name: install nginx
+  yum: name=nginx state=present update_cache=yes
+  become: true
+
+- name: copy nginx.conf
+  copy: src=roles/es_reverse_proxy/templates/nginx.conf dest=/etc/nginx/nginx.conf
+  become: yes
+
+- name: copy nginx reverse proxy configuration
+  template: src=roles/es_reverse_proxy/templates/elasticsearch.conf.j2 dest=/etc/nginx/conf.d/elasticsearch.conf
+  become: yes
+
+
+- name: start nginx service
+  service: name=nginx state=restarted enabled=yes
+  become: yes
+
+

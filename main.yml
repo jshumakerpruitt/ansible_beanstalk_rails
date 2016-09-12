@@ -13,5 +13,5 @@
       private: no
   roles:
     - cloudformation
-    - beanstalk
+    #- beanstalk
     #- circle

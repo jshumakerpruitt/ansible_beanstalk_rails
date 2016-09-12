@@ -13,3 +13,4 @@ eb_environment_name: rails-staging
 eb_application_name: eb-rails
 eb_asg_min: 1
 eb_asg_max: 4
+ansible_user: ec2-user

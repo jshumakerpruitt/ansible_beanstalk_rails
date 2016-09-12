@@ -214,12 +214,18 @@ CloudFormation {
     Value Ref('BastionHostEIP')
   end
 
+
   EC2_Instance 'BastionHost' do
     SubnetId Ref('PublicSubnetA')
     SecurityGroupIds [Ref("BastionSecurityGroup")]
     KeyName Ref('KeyName')
     ImageId "ami-6869aa05"
     InstanceType 't2.micro'
+  end
+
+  Output 'BastionHostId' do
+    Description 'Bastion Host Logical Id'
+    Value Ref('BastionHost')
   end
 
   EC2_EIPAssociation 'BastionHostEIPAssociation' do
@@ -231,14 +237,19 @@ CloudFormation {
   EC2_SecurityGroup "BastionSecurityGroup" do
     VpcId Ref("VPC")
     GroupDescription "Allow SSH traffic to bastion host"
-    SecurityGroupIngress IpProtocol: "tcp",
-                         FromPort: "22",
-                         ToPort: "22",
-                         CidrIp: "0.0.0.0/0"
+    SecurityGroupIngress [{IpProtocol: "tcp",
+                           FromPort: "22",
+                           ToPort: "22",
+                           CidrIp: "0.0.0.0/0"},
+                          {IpProtocol: "-1",
+                           FromPort: "8123",
+                           ToPort: "8123",
+                           CidrIp: "0.0.0.0/0"}]
+
 
     SecurityGroupEgress IpProtocol: "tcp",
-                        FromPort: "22",
-                        ToPort: "22",
+                        FromPort: "0",
+                        ToPort: "10000",
                         CidrIp: "0.0.0.0/0"
   end
 }
