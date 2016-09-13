@@ -20,21 +20,21 @@ $ cd $RAILS_ROOT
 ```sh
 $ eb create
 ```
-Choose type = 'application' and add a prefix to the enviroment name e.g. staging or prod)
+Choose type = 'application' and add a prefix to the enviroment name e.g. staging or prod)  
 This will create the resources but the deploy will fail because the rails app needs ENV variables which are missing.
 # Configure your rails app to read db settings from ENV
 ```ruby
 production:
   adapter: postgresql
-    encoding: unicode
-      database: <%= ENV['RDS_DB_NAME'] %>
-        username: <%= ENV['RDS_USERNAME'] %>
-          password: <%= ENV['RDS_PASSWORD'] %>
-            host: <%= ENV['RDS_HOSTNAME'] %>
-              port: <%= ENV['RDS_PORT'] %>
-              ```
-              # Make sure your app has a root route for the health check.
-              i.e. `GET '/'` returns something`
+  encoding: unicode
+  database: <%= ENV['RDS_DB_NAME'] %>
+  username: <%= ENV['RDS_USERNAME'] %>
+  password: <%= ENV['RDS_PASSWORD'] %>
+  host: <%= ENV['RDS_HOSTNAME'] %>
+  port: <%= ENV['RDS_PORT'] %>
+```
+# Make sure your app has a root route for the health check.
+i.e. `GET '/'` returns something`
 
 # Commit your changes
 ```sh
@@ -55,4 +55,5 @@ This change in ENV will automatically trigger a deploy. View your app:
 ```sh
 $ eb open
 ```
+
 
